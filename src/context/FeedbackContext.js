@@ -1,76 +1,38 @@
-import { createContext, useState } from "react";
-import { v4 as uuidv4 } from "uuid"
+import { createContext, useState, useEffect } from "react";
 
 const FeedbackContext = createContext()
 
 export const FeedbackProvider = ({ children }) => {
-    const [feedback, setFeedback] = useState([
-        {
-            "id": 1,
-            "rating": 9,
-            "text": "I had a wonderful experience at this restaurant. The food was amazing, and the service was top-notch. I highly recommend it!"
-        },
-        {
-            "id": 2,
-            "rating": 8,
-            "text": "The ambiance in this restaurant is lovely. The dishes are well-prepared, although the dessert menu could be improved. Overall, a good dining experience."
-        },
-        {
-            "id": 3,
-            "rating": 7,
-            "text": "I tried the new restaurant in town. While the presentation of the dishes was impressive, the flavors were somewhat lacking. It's worth trying, but not my top choice."
-        },
-        {
-            "id": 4,
-            "rating": 9,
-            "text": "This restaurant's seafood selection is outstanding. I had the lobster and it was cooked to perfection. The prices are reasonable for the quality of food."
-        },
-        {
-            "id": 5,
-            "rating": 6,
-            "text": "I had high hopes for this restaurant, but it fell short of expectations. The service was slow, and the food was just average."
-        },
-        {
-            "id": 6,
-            "rating": 8,
-            "text": "I visited this Italian restaurant and was pleasantly surprised. The pasta was delicious, and the portions were generous. I'll definitely be back."
-        },
-        {
-            "id": 7,
-            "rating": 7,
-            "text": "The restaurant's atmosphere is cozy, but the menu options are limited. The food was decent, but I wish they had more variety."
-        },
-        {
-            "id": 8,
-            "rating": 9,
-            "text": "I had an amazing dining experience here! The chef's tasting menu was a culinary delight, and the wine pairings were spot on."
-        },
-        {
-            "id": 9,
-            "rating": 5,
-            "text": "I had a disappointing experience at this restaurant. The steak was overcooked, and the staff seemed overwhelmed. I won't be returning."
-        },
-        {
-            "id": 10,
-            "rating": 9,
-            "text": "This restaurant serves the best sushi in town! The fish is incredibly fresh, and the sushi chef is a true master. A must-visit for sushi lovers."
-        }
-    ])
+    const [feedback, setFeedback] = useState([])
+    const [isLoading, setIsLoading] = useState([true])
 
     const [feedbackEdit, setFeedbackEdit] = useState({
         item: {},
         edit: false
     })
 
-    const deleteFeedback = (id) => {
+    const deleteFeedback = async (id) => {
         if (window.confirm("Are you sure?")) {
+            await fetch(`/feedback/${id}`, {
+                method: "DELETE"
+            })
+
             setFeedback(feedback.filter((item) => item.id !== id))
         }
     }
 
-    const addFeedback = (newFeedback) => {
-        newFeedback.id = uuidv4
-        setFeedback([newFeedback, ...feedback])
+    const addFeedback = async (newFeedback) => {
+        const response = await fetch("/feedback", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(newFeedback)
+        });
+
+        const data = await response.json()
+
+        setFeedback([data, ...feedback])
     }
 
     const editFeedback = (item) => {
@@ -80,13 +42,38 @@ export const FeedbackProvider = ({ children }) => {
         })
     }
 
-    const updateFeedback = (id, updateItem) => {
+    const updateFeedback = async (id, updateItem) => {
+        const response = await fetch(`/feedback/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(updateItem)
+        });
+
+        const data = await response.json()
+
         setFeedback(feedback.map(
-            (item) => item.id === id 
-            ? {...item, ...updateItem}
-            : item
+            (item) => item.id === id
+                ? { ...item, ...data }
+                : item
         ))
     }
+
+    const fetchFeedback = async () => {
+        const response = await fetch("/feedback?_sort=id&_order=desc")
+        const data = await response.json()
+
+        setFeedback(data)
+        setIsLoading(false)
+    }
+
+    useEffect(
+        () => {
+            fetchFeedback()
+        },
+        []
+    )
 
     return <FeedbackContext.Provider
         value={{
@@ -96,6 +83,7 @@ export const FeedbackProvider = ({ children }) => {
             editFeedback, // edit function 
             feedbackEdit, // edit state 
             updateFeedback, // update function 
+            isLoading,
         }}>
         {children}
     </FeedbackContext.Provider>

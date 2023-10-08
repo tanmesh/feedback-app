@@ -1,7 +1,7 @@
 import { useState, useContext, useEffect } from "react"
 import React from 'react'
-import Card from "../shared/Card"
-import Button from '../shared/Button'
+import Card from "./shared/Card"
+import Button from './shared/Button'
 import RatingSelect from './RatingSelect'
 import FeedbackContext from '../context/FeedbackContext'
 
@@ -33,16 +33,20 @@ function FeedbackForm() {
         e.preventDefault()
         if (text.trim().length > 10) {
             const newFeedback = {
-                feedbackEdit,
                 text,
                 rating,
             }
+            
             if (feedbackEdit.edit === true) {
                 updateFeedback(feedbackEdit.item.id, newFeedback)
             } else {
                 addFeedback(newFeedback)
             }
         }
+
+        setBtnDisabled(true) 
+        setRating(10)
+        setText('')
     }
 
     useEffect(
