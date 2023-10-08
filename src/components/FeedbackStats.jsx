@@ -1,7 +1,9 @@
+import { useContext } from 'react'
 import React from 'react'
-import PropType from "prop-types"
+import FeedbackContext from '../context/FeedbackContext'
 
-function FeedbackStats({ feedback }) {
+function FeedbackStats() {
+    const { feedback } = useContext(FeedbackContext)
 
     let average = feedback.reduce((accumulator, curr) => {
         return accumulator + curr.rating
@@ -15,14 +17,6 @@ function FeedbackStats({ feedback }) {
             <h4>Average Rating: {average}</h4>
         </div>
     )
-}
-
-FeedbackStats.prototype = {
-    feedback: PropType.shape({
-        id: PropType.number.isRequired,
-        rating: PropType.number.isRequired,
-        text: PropType.string.isRequired,
-    }),
 }
 
 export default FeedbackStats
